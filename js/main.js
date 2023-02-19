@@ -12,17 +12,25 @@ function makeApiRequest(dateString, timeSpan, operationString, tzString) {
 		dstAmbiguity: ""
 	};
 	// If we made it past the validation, lets post the request to the API.
-	$.post(url, body, function(response) {
-		console.log('response', response);
-		// If there was no response, display an error message.
-		if(typeof response === 'undefined' || typeof response.result === 'undefined' || response.result === '') {
-			$('#infoModal .modal-body').html('There was an issue calculating the result.');
-		} else {
-			$('#infoModal .modal-body').html(response.result);
-		}
-
-		// Display the result.
-		$('#infoModal').modal('show');
+	$.ajax({
+		url: url,
+		type: "POST",
+        headers: {'Access-Control-Allow-Origin': 'https://snake14.github.io'},
+        data: body,
+        dataType: "json",
+		success: function(response) {
+			console.log('response', response);
+			// If there was no response, display an error message.
+			if(typeof response === 'undefined' || typeof response.result === 'undefined' || response.result === '') {
+				$('#infoModal .modal-body').html('There was an issue calculating the result.');
+			} else {
+				$('#infoModal .modal-body').html(response.result);
+			}
+	
+			// Display the result.
+			$('#infoModal').modal('show');
+		},
+		error: function() { alert('Failed!'); }
 	});
 }
 
