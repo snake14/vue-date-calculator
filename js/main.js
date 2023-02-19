@@ -15,7 +15,6 @@ function makeApiRequest(dateString, timeSpan, operationString, tzString) {
 	$.ajax({
 		url: url,
 		type: "POST",
-        headers: {'Access-Control-Allow-Origin': 'https://snake14.github.io'},
         data: body,
         dataType: "json",
 		success: function(response) {
