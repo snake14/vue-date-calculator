@@ -1,58 +1,86 @@
-function makeApiRequest(dateString, timeSpan, operationString, tzString) {
-	var url = 'https://www.timeapi.io/api/Calculation/custom/';
-	var urlOperation = 'increment';
-	if (operationString && operationString === '-') {
-		urlOperation = 'decrement';
+// I wouldn't normally commit an API key, but ths page has to be static and
+// the key is for a free RapidApi account with a daily limit of 100 requests.
+const RAPID_API_KEY = '402eeb277fmsh81bbbf75eeda631p180c87jsn797f463f3dbc';
+const RAPID_API_HOST = 'date-calculator2.p.rapidapi.com';
+const RAPID_API_BASE_URL = 'https://' + RAPID_API_HOST;
+const RAPID_API_SDATE_PATH = '/datetime/sdate'
+
+class ApiRequestParams {
+	start_date = '';
+	years = 0;
+	months = 0;
+	weeks = 0;
+	days = 0;
+	hours = 0;
+	minutes = 0;
+	seconds = 0;
+
+	constructor(dateString) {
+		this.start_date = dateString;
 	}
-	url += urlOperation;
-	var body = {
-		timeZone: tzString ? tzString : "UTC",
-		dateTime: dateString,
-		timeSpan: timeSpan,
-		dstAmbiguity: ""
-	};
-	// If we made it past the validation, lets post the request to the API.
+}
+
+function makeSdateApiRequest(apiRequestParams, displayResultCallback) {
+	const url = RAPID_API_BASE_URL + RAPID_API_SDATE_PATH;
 	$.ajax({
 		url: url,
-		type: "POST",
-        data: body,
-        dataType: "json",
+		async: true,
+		crossDomain: true,
+		data: apiRequestParams,
+		method: "GET",
+		headers: {
+			"X-RapidAPI-Key": RAPID_API_KEY,
+			"X-RapidAPI-Host": RAPID_API_HOST
+		},
 		success: function(response) {
-			console.log('response', response);
+			var message = '';
 			// If there was no response, display an error message.
-			if(typeof response === 'undefined' || typeof response.result === 'undefined' || response.result === '') {
-				$('#infoModal .modal-body').html('There was an issue calculating the result.');
+			if(typeof response !== 'undefined' && typeof response.sdate !== 'undefined' && response.sdate) {
+				message = response.sdate;
 			} else {
-				$('#infoModal .modal-body').html(response.result);
+				message = 'There was an issue calculating the result.';
+				if(typeof response !== 'undefined' && typeof response.message !== 'undefined' && response.message) {
+					console.log(response.message);
+				}
 			}
 	
-			// Display the result.
-			$('#infoModal').modal('show');
+			displayResultCallback(message);
 		},
-		error: function() { alert('Failed!'); }
+		error: function(xhr, status, error) {
+			const err = JSON.parse(xhr.responseText);
+			var message = 'The API returned an error.';
+			if(err && typeof err.message !== 'undefined' && err.message) {
+				message = err.message;
+			}
+			displayResultCallback(message);
+		}
 	});
 }
 
-function formatTimeUnit(unitValue) {
-	if (time < 10) {
-		return '0' + unitValue;
+const calculateFromDate = function(date, amount, unitType, displayResultCallback) {
+	const params = new ApiRequestParams(date)
+	switch (unitType) {
+		case 'year':
+			params.years = amount;
+			break;
+		case 'month':
+			params.months = amount;
+			break;
+		case 'week':
+			params.weeks = amount;
+			break;
+		case 'day':
+			params.days = amount;
+			break;
+		case 'hour':
+			params.hours = amount;
+			break;
+		case 'minute':
+			params.minutes = amount;
+			break;
+		case 'second':
+			params.seconds = amount;
 	}
 
-	return unitValue;
-}
-
-var calculateDaysFromDate = function(date, numDays, operation) {
-	makeApiRequest(date + " 00:00:00", numDays + ":00:00:00", operation);
-};
-
-var calculateFromDateTime = function(date, time, diffSeconds, operation) {
-	var numSeconds, numMinutes, numHours, numDays = 0;
-	numSeconds = diffSeconds % 60;
-	var diffMinutes = (diffSeconds - numSeconds) / 60;
-	numMinutes = diffMinutes % 60;
-	var diffHours = (diffMinutes - numMinutes) / 60;
-	numHours = diffHours % 24;
-	numDays = (diffHours - numHours) / 24;
-	var timeSpan = numDays + ' ' + formatTimeUnit(numHours) + ' ' + formatTimeUnit(numMinutes) + ' ' + formatTimeUnit(numSeconds);
-	makeApiRequest(date + " " + time, timeSpan, operation);
+	makeSdateApiRequest(params, displayResultCallback);
 };
