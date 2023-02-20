@@ -2,8 +2,8 @@ Vue.component('calc-from-date-time', {
 	props: { displayResult: { type: Function } },
 	data() {
 		return {
-			startDate: null,
-			startTime: null,
+			startDate: moment().format('YYYY-MM-DD'),
+			startTime: moment().format('HH:mm:ss'),
 			amount: null,
 			unitType: null,
 			unitTypes: [
@@ -31,8 +31,8 @@ Vue.component('calc-from-date-time', {
 			calculateFromDate(startDateTime, this.amount, this.unitType, this.displayResult);
 		},
 		clearInputs: function () {
-			this.startDate = null;
-			this.startTime = null;
+			this.startDate = moment().format('YYYY-MM-DD');
+			this.startTime = moment().format('HH:mm:ss');
 			this.amount = null;
 			this.unitType = null;
 		}
@@ -42,15 +42,15 @@ Vue.component('calc-from-date-time', {
 			<form id="calcFromDateTime">
 				<div class="form-row">
 					<div class="form-group col-auto">
-						<b-form-datepicker v-model="startDate" id="date" name="date" required></b-form-datepicker>
+						<b-form-datepicker v-model="startDate"></b-form-datepicker>
 					</div>
 					<div class="form-group col-auto">
-						<b-form-timepicker v-model="startTime" id="time" name="time" required></b-form-timepicker>
+						<b-form-timepicker v-model="startTime" show-seconds></b-form-timepicker>
 					</div>
 				</div>
 				<div class="form-row">
 					<div class="form-group col-auto">
-						<b-form-input type="number" v-model="amount" name="amount" id="amount" placeholder="Offset (+/-amount)" required></b-form-input>
+						<b-form-input type="number" v-model="amount" placeholder="Offset (+/-amount)" required></b-form-input>
 					</div>
 				</div>
 				<div class="form-row">

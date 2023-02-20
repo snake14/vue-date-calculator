@@ -2,7 +2,7 @@ Vue.component('calc-from-date', {
 	props: { displayResult: { type: Function } },
 	data() {
 		return {
-			startDate: null,
+			startDate: moment().format('YYYY-MM-DD'),
 			amount: null,
 			unitType: null,
 			unitTypes: [
@@ -29,7 +29,7 @@ Vue.component('calc-from-date', {
 			calculateFromDate(this.startDate, this.amount, this.unitType, this.displayResult);
 		},
 		clearInputs: function () {
-			this.startDate = null;
+			this.startDate = moment().format('YYYY-MM-DD');
 			this.amount = null;
 			this.unitType = null;
 		}
@@ -39,12 +39,12 @@ Vue.component('calc-from-date', {
 			<form id="calcFromDate">
 				<div class="form-row">
 					<div class="form-group col-auto">
-						<b-form-datepicker v-model="startDate" id="date" name="date" required></b-form-datepicker>
+						<b-form-datepicker v-model="startDate"></b-form-datepicker>
 					</div>
 				</div>
 				<div class="form-row">
 					<div class="form-group col-auto">
-						<b-form-input type="number" v-model="amount" name="amount" id="amount" placeholder="Offset (+/-amount)" required></b-form-input>
+						<b-form-input type="number" v-model="amount" placeholder="Offset (+/-amount)" required></b-form-input>
 					</div>
 				</div>
 				<div class="form-row">
