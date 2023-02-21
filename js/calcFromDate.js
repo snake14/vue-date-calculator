@@ -1,5 +1,9 @@
 Vue.component('calc-from-date', {
-	props: { displayResult: { type: Function } },
+	props: {
+		displayResult: { type: Function },
+		showLoading: { type: Function },
+		hideLoading: { type: Function }
+	},
 	data() {
 		return {
 			startDate: moment().format('YYYY-MM-DD'),
@@ -16,6 +20,9 @@ Vue.component('calc-from-date', {
 	},
 	methods: {
 		calculateFromDate: function () {
+			const stopLoading = this.hideLoading;
+			const displayResult = this.displayResult;
+
 			// Validate the form before trying to select a number.
 			$form = $('#calcFromDate');
 			var isValid = $form[0].checkValidity();
@@ -24,11 +31,16 @@ Vue.component('calc-from-date', {
 			if(isValid === false) {
 				return false;
 			}
+
+			this.showLoading();
 			
 			// Perform the actual calculcation and display the result
-			calculateFromDate(this.startDate, this.amount, this.unitType, this.displayResult);
+			calculateFromDate(this.startDate, this.amount, this.unitType, function(message) {
+				stopLoading();
+				displayResult(message);
+			});
 		},
-		clearInputs: function () {
+		resetInputs: function () {
 			this.startDate = moment().format('YYYY-MM-DD');
 			this.amount = null;
 			this.unitType = null;
@@ -60,7 +72,7 @@ Vue.component('calc-from-date', {
 				<div class="form-row">
 					<div class="form-group col mt-3">
 						<b-button variant="primary" @click="calculateFromDate">Submit</b-button>
-						<b-button variant="secondary" @click="clearInputs">Clear</b-button>
+						<b-button variant="secondary" @click="resetInputs">Reset</b-button>
 					</div>
 				</div>
 			</form>
