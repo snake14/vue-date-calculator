@@ -1,11 +1,31 @@
 // I wouldn't normally commit an API key, but ths page has to be static and
 // the key is for a free RapidApi account with a daily limit of 100 requests.
+// It's also exposed in the client when the user inspects anyway.
 const RAPID_API_KEY = '402eeb277fmsh81bbbf75eeda631p180c87jsn797f463f3dbc';
 const RAPID_API_HOST = 'date-calculator2.p.rapidapi.com';
 const RAPID_API_BASE_URL = 'https://' + RAPID_API_HOST;
 const RAPID_API_SDATE_PATH = '/datetime/sdate'
+const RAPID_API_DATEDIF_PATH = '/datetime/datedif'
 
-class ApiRequestParams {
+class ApiRequest {
+	getUrl() {
+		return RAPID_API_BASE_URL;
+	}
+
+	hasValidResponse(response) {
+		return false;
+	}
+
+	hasResponseMessage(response) {
+		return typeof response !== 'undefined' && typeof response.message !== 'undefined' && response.message;
+	}
+
+	formatResponse(response) {
+		return response;
+	}
+}
+
+class ApiRequestSDate {
 	start_date = '';
 	years = 0;
 	months = 0;
@@ -18,15 +38,62 @@ class ApiRequestParams {
 	constructor(dateString) {
 		this.start_date = dateString;
 	}
+
+	getUrl() {
+		return RAPID_API_BASE_URL + RAPID_API_SDATE_PATH;
+	}
+
+	hasValidResponse(response) {
+		return typeof response !== 'undefined' && typeof response.sdate !== 'undefined' && response.sdate;
+	}
+
+	formatResponse(response) {
+		return response.sdate;
+	}
 }
 
-function makeSdateApiRequest(apiRequestParams, displayResultCallback) {
-	const url = RAPID_API_BASE_URL + RAPID_API_SDATE_PATH;
+class ApiRequestDateDif {
+	start_date = '';
+	end_date = '';
+
+	constructor(startDate, endDate) {
+		this.start_date = startDate;
+		this.end_date = endDate;
+	}
+
+	getUrl() {
+		return RAPID_API_BASE_URL + RAPID_API_DATEDIF_PATH;
+	}
+
+	hasValidResponse(response) {
+		return typeof response !== 'undefined' && typeof response.datedif !== 'undefined' && response.datedif;
+	}
+
+	formatResponse(response) {
+		const diffResponse = response.datedif;
+		var responseString = '';
+		if (typeof diffResponse.years !== 'undefined' && diffResponse.years) {
+			responseString += 'Years: ' + diffResponse.years + '<br/>'
+		}
+		if (typeof diffResponse.months !== 'undefined' && diffResponse.months) {
+			responseString += 'Months: ' + diffResponse.months + '<br/>'
+		}
+		if (typeof diffResponse.days !== 'undefined' && diffResponse.days) {
+			responseString += 'Days: ' + diffResponse.days + '<br/>'
+		}
+		if (!responseString) {
+			responseString = 'No difference<br/>'
+		}
+		return responseString;
+	}
+}
+
+function makeApiRequest(apiRequest, displayResultCallback) {
 	$.ajax({
-		url: url,
+		url: apiRequest.getUrl(),
 		async: true,
 		crossDomain: true,
-		data: apiRequestParams,
+		data: apiRequest,
 		method: "GET",
 		headers: {
 			"X-RapidAPI-Key": RAPID_API_KEY,
@@ -35,11 +102,11 @@ function makeSdateApiRequest(apiRequestParams, displayResultCallback) {
 		success: function(response) {
 			var message = '';
 			// If there was no response, display an error message.
-			if(typeof response !== 'undefined' && typeof response.sdate !== 'undefined' && response.sdate) {
-				message = response.sdate;
+			if(apiRequest.hasValidResponse(response)) {
+				message = apiRequest.formatResponse(response);
 			} else {
 				message = 'There was an issue calculating the result.';
-				if(typeof response !== 'undefined' && typeof response.message !== 'undefined' && response.message) {
+				if(apiRequest.hasResponseMessage(response)) {
 					console.log(response.message);
 				}
 			}
@@ -58,29 +125,34 @@ function makeSdateApiRequest(apiRequestParams, displayResultCallback) {
 }
 
 const calculateFromDate = function(date, amount, unitType, displayResultCallback) {
-	const params = new ApiRequestParams(date)
+	const request = new ApiRequestSDate(date);
 	switch (unitType) {
 		case 'year':
-			params.years = amount;
+			request.years = amount;
 			break;
 		case 'month':
-			params.months = amount;
+			request.months = amount;
 			break;
 		case 'week':
-			params.weeks = amount;
+			request.weeks = amount;
 			break;
 		case 'day':
-			params.days = amount;
+			request.days = amount;
 			break;
 		case 'hour':
-			params.hours = amount;
+			request.hours = amount;
 			break;
 		case 'minute':
-			params.minutes = amount;
+			request.minutes = amount;
 			break;
 		case 'second':
-			params.seconds = amount;
+			request.seconds = amount;
 	}
 
-	makeSdateApiRequest(params, displayResultCallback);
+	makeApiRequest(request, displayResultCallback);
 };
+
+const calculateDiffBetweenDates = function(startDate, endDate, displayResultCallback) {
+	const request = new ApiRequestDateDif(startDate, endDate)
+	makeApiRequest(request, displayResultCallback);
+}

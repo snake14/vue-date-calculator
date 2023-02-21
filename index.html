@@ -31,6 +31,7 @@
 		<script src="js/main.js"></script>
 		<script src="js/calcFromDate.js"></script>
 		<script src="js/calcFromDateTime.js"></script>
+		<script src="js/diffBetweenDates.js"></script>
 
 		<style>
 			.form .form-control {
@@ -71,6 +72,9 @@
 									</b-card-text></b-tab>
 									<b-tab title="Add/Subtract From a Date/Time"><b-card-text>
 										<calc-from-date-time :display-result="displayResult" :show-loading="showOverlay" :hide-loading="hideOverlay" />
+									</b-card-text></b-tab>
+									<b-tab title="Difference Between Dates"><b-card-text>
+										<calc-diff-between-dates :display-result="displayResult" :show-loading="showOverlay" :hide-loading="hideOverlay" />
 									</b-card-text></b-tab>
 								</b-tabs>
 							</b-overlay>
