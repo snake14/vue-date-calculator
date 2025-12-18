@@ -2,10 +2,8 @@
 // the key is for a free RapidApi account with a daily limit of 100 requests.
 // It's also exposed in the client when the user inspects anyway.
 const RAPID_API_KEY = '402eeb277fmsh81bbbf75eeda631p180c87jsn797f463f3dbc';
-const RAPID_API_HOST = 'date-calculator2.p.rapidapi.com';
-const RAPID_API_BASE_URL = 'https://' + RAPID_API_HOST;
-const RAPID_API_SDATE_PATH = '/datetime/sdate'
-const RAPID_API_DATEDIF_PATH = '/datetime/datedif'
+const RAPID_API_HOST = 'date-calculator3.p.rapidapi.com';
+const RAPID_API_BASE_URL = 'https://' + RAPID_API_HOST + '/api/utilities/date-calculator/v1';
 
 class ApiRequest {
 	getUrl() {
@@ -26,51 +24,50 @@ class ApiRequest {
 }
 
 class ApiRequestSDate {
-	start_date = '';
-	years = 0;
-	months = 0;
-	weeks = 0;
-	days = 0;
-	hours = 0;
-	minutes = 0;
-	seconds = 0;
+	date = '';
+	value = 0;
+	unit = 'days';
+	timezone = 'utc';
+	operation = 'add';
+	outputFormat = 'yyyy-mm-dd';
 
 	constructor(dateString) {
-		this.start_date = dateString;
+		this.date = dateString;
 	}
 
 	getUrl() {
-		return RAPID_API_BASE_URL + RAPID_API_SDATE_PATH;
+		return RAPID_API_BASE_URL;
 	}
 
 	hasValidResponse(response) {
-		return typeof response !== 'undefined' && typeof response.sdate !== 'undefined' && response.sdate;
+		return typeof response !== 'undefined' && typeof response.success !== 'undefined' && response.success;
 	}
 
 	formatResponse(response) {
-		return response.sdate;
+		return response.data.resultDate;
 	}
 }
 
 class ApiRequestDateDif {
-	start_date = '';
-	end_date = '';
+	date = '';
+	targetDate = '';
+	operation = 'difference';
 
 	constructor(startDate, endDate) {
-		this.start_date = startDate;
-		this.end_date = endDate;
+		this.date = startDate;
+		this.targetDate = endDate;
 	}
 
 	getUrl() {
-		return RAPID_API_BASE_URL + RAPID_API_DATEDIF_PATH;
+		return RAPID_API_BASE_URL;
 	}
 
 	hasValidResponse(response) {
-		return typeof response !== 'undefined' && typeof response.datedif !== 'undefined' && response.datedif;
+		return typeof response !== 'undefined' && typeof response.success !== 'undefined' && response.success;
 	}
 
 	formatResponse(response) {
-		const diffResponse = response.datedif;
+		const diffResponse = response.data.age;
 		var responseString = '';
 		if (typeof diffResponse.years !== 'undefined' && diffResponse.years) {
 			responseString += 'Years: ' + diffResponse.years + '<br/>'
@@ -93,11 +90,12 @@ function makeApiRequest(apiRequest, displayResultCallback) {
 		url: apiRequest.getUrl(),
 		async: true,
 		crossDomain: true,
-		data: apiRequest,
-		method: "GET",
+		data: JSON.stringify(apiRequest),
+		method: "POST",
 		headers: {
 			"X-RapidAPI-Key": RAPID_API_KEY,
-			"X-RapidAPI-Host": RAPID_API_HOST
+			"X-RapidAPI-Host": RAPID_API_HOST,
+			"Content-Type": "application/json"
 		},
 		success: function(response) {
 			var message = '';
@@ -107,7 +105,7 @@ function makeApiRequest(apiRequest, displayResultCallback) {
 			} else {
 				message = 'There was an issue calculating the result.';
 				if(apiRequest.hasResponseMessage(response)) {
-					console.log(response.message);
+					console.log(response.error);
 				}
 			}
 	
@@ -126,27 +124,31 @@ function makeApiRequest(apiRequest, displayResultCallback) {
 
 const calculateFromDate = function(date, amount, unitType, displayResultCallback) {
 	const request = new ApiRequestSDate(date);
+	request.value = amount;
 	switch (unitType) {
 		case 'year':
-			request.years = amount;
+			request.unit = 'years';
 			break;
 		case 'month':
-			request.months = amount;
+			request.unit = 'months';
 			break;
 		case 'week':
-			request.weeks = amount;
+			request.unit = 'weeks';
 			break;
 		case 'day':
-			request.days = amount;
+			request.unit = 'days';
 			break;
 		case 'hour':
-			request.hours = amount;
+			request.unit = 'hours';
+			request.outputFormat = 'readable';
 			break;
 		case 'minute':
-			request.minutes = amount;
+			request.unit = 'minutes';
+			request.outputFormat = 'readable';
 			break;
 		case 'second':
-			request.seconds = amount;
+			request.unit = 'seconds';
+			request.outputFormat = 'readable';
 	}
 
 	makeApiRequest(request, displayResultCallback);
