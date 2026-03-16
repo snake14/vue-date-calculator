@@ -36,7 +36,7 @@ class ApiRequestSDate {
 	}
 
 	getUrl() {
-		return RAPID_API_BASE_URL;
+		return RAPID_API_BASE_URL + '/' + this.operation;
 	}
 
 	hasValidResponse(response) {
@@ -44,22 +44,22 @@ class ApiRequestSDate {
 	}
 
 	formatResponse(response) {
-		return response.data.resultDate;
+		return response.data.result;
 	}
 }
 
 class ApiRequestDateDif {
-	date = '';
-	targetDate = '';
+	startDate = '';
+	endDate = '';
 	operation = 'difference';
 
 	constructor(startDate, endDate) {
-		this.date = startDate;
-		this.targetDate = endDate;
+		this.startDate = startDate;
+		this.endDate = endDate;
 	}
 
 	getUrl() {
-		return RAPID_API_BASE_URL;
+		return RAPID_API_BASE_URL + '/' + this.operation;
 	}
 
 	hasValidResponse(response) {
@@ -67,6 +67,8 @@ class ApiRequestDateDif {
 	}
 
 	formatResponse(response) {
+		return response.data.humanReadable;
+
 		const diffResponse = response.data.age;
 		var responseString = '';
 		if (typeof diffResponse.years !== 'undefined' && diffResponse.years) {
@@ -124,7 +126,7 @@ function makeApiRequest(apiRequest, displayResultCallback) {
 
 const calculateFromDate = function(date, amount, unitType, displayResultCallback) {
 	const request = new ApiRequestSDate(date);
-	request.value = amount;
+	request.value = Number(amount);
 	switch (unitType) {
 		case 'year':
 			request.unit = 'years';
